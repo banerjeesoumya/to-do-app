@@ -1,10 +1,11 @@
 const express = require("express");
 const { createTodoSchema, updateTodoSchema } = require("./types");
+const { todo } = require("./db");
 const app = express();
 
 app.use(express.json());
 
-app.post ("/todo", (req, res) => {
+app.post ("/todo", async (req, res) => {
     const createPayload = req.body;
     const parsedPayload = createTodoSchema.safeParse(createPayload);
     if (!parsedPayload.success) {
@@ -12,15 +13,26 @@ app.post ("/todo", (req, res) => {
             msg: "You sent the wrong inputs"
         });
     }
+    
+    await todo.create({
+        title: createPayload.title,
+        description: createPayload.description,
+        completed: false
+    })
+    
+    res.status(200).json({
+        msg: "Todo created successfully"
+    });
 
-    //putting it in the database
+    
 });
 
-app.get ("/todos", (req, res) => {
-
+app.get ("/todos", async (req, res) => {
+    const response = await todo.find({});
+    res.status(200).send(response);
 });
 
-app.put ("/completed", (req, res) => {
+app.put ("/completed", async (req, res) => {
     const updatePayload = req.body;
     const parsedPayload = updateTodoSchema.safeParse(updatePayload);
     if (!parsedPayload.success) {
@@ -29,5 +41,18 @@ app.put ("/completed", (req, res) => {
         });
     }
 
-    // putting it in the database
+    await todo.updateOne({
+        _id: req.body._id,
+    }, {
+        completed: true
+    })
+    res.json({
+        msg: "Todo marked as complete"
+    })
 })
+
+const PORT = 3000;
+
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
