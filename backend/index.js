@@ -1,9 +1,11 @@
 const express = require("express");
 const { createTodoSchema, updateTodoSchema } = require("./types");
 const { todo } = require("./db");
+const cors = require("cors");
 const app = express();
 
 app.use(express.json());
+app.use(cors())
 
 app.post ("/todo", async (req, res) => {
     const createPayload = req.body;
@@ -29,7 +31,9 @@ app.post ("/todo", async (req, res) => {
 
 app.get ("/todos", async (req, res) => {
     const response = await todo.find({});
-    res.status(200).send(response);
+    res.json({
+        response
+    });
 });
 
 app.put ("/completed", async (req, res) => {
